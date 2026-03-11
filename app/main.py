@@ -1,6 +1,3 @@
-"""
-Dog Breeds Dashboard - Interactive Dash application for exploring dog breed data.
-"""
 import os
 import re
 
@@ -12,10 +9,16 @@ from dash import Dash, dcc, html, Input, Output, callback
 # Load data
 DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "breeds.csv")
 df = pd.read_csv(DATA_PATH)
-
-
 df["breed_group"] = df["breed_group"].fillna("Unknown")
 df["country_code"] = df["country_code"].fillna("Unknown")
+
+
+def load_data():
+    """Load or reload breeds CSV into global df."""
+    global df
+    df = pd.read_csv(DATA_PATH)
+    df["breed_group"] = df["breed_group"].fillna("Unknown")
+    df["country_code"] = df["country_code"].fillna("Unknown")
 
 
 def parse_metric_to_midpoint(s: str) -> float | None:
@@ -29,8 +32,6 @@ def parse_metric_to_midpoint(s: str) -> float | None:
         return (lo + hi) / 2
     return None
 
-
-# Color palette for charts (warm, dog-friendly tones)
 PALETTE = [
     "#E8A87C",  # terracotta
     "#41B3A3",  # teal
@@ -64,7 +65,26 @@ app.layout = html.Div(
         html.H1("Dog Breeds Dashboard", style={"textAlign": "center", "marginBottom": "0.5rem"}),
         html.P(
             "Explore dog breeds from The Dog API. Search for a specific breed or explore by country or breed group.",
-            style={"textAlign": "center", "color": "#666", "marginBottom": "1.5rem"},
+            style={"textAlign": "center", "color": "#666", "marginBottom": "0.5rem"},
+        ),
+        html.Div(
+            [
+                html.Button(
+                    "Refresh data",
+                    id="refresh-button",
+                    n_clicks=0,
+                    style={
+                        "padding": "0.4rem 1rem",
+                        "fontSize": "0.9rem",
+                        "cursor": "pointer",
+                        "borderRadius": "4px",
+                        "border": "1px solid #ccc",
+                        "background": "#f5f5f5",
+                    },
+                ),
+                html.Span(id="refresh-status", style={"marginLeft": "0.75rem", "fontSize": "0.9rem"}),
+            ],
+            style={"textAlign": "center", "marginBottom": "1.5rem"},
         ),
         dcc.Tabs(
             id="tabs",
@@ -174,6 +194,22 @@ app.layout = html.Div(
     ],
     style={"fontFamily": "system-ui, sans-serif", "maxWidth": "1200px", "margin": "0 auto", "padding": "1rem"},
 )
+
+
+@callback(
+    Output("refresh-status", "children"),
+    Input("refresh-button", "n_clicks"),
+    prevent_initial_call=True,
+)
+def refresh_data(n_clicks):
+    try:
+        from getdata import API_KEY, save_breeds_to_csv, save_breeds_to_json
+        save_breeds_to_csv(api_key=API_KEY)
+        save_breeds_to_json(api_key=API_KEY)
+        load_data()
+        return html.Span("Data refreshed. Charts will use new data on next filter or search.", style={"color": "#0a0"})
+    except Exception as e:
+        return html.Span(f"Refresh failed: {e}", style={"color": "#c00"})
 
 
 @callback(Output("breed-result", "children"), Input("breed-search", "value"))
