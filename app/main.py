@@ -203,7 +203,7 @@ app.layout = html.Div(
 )
 def refresh_data(n_clicks):
     try:
-        from getdata import API_KEY, save_breeds_to_csv, save_breeds_to_json
+        from app.getdata import API_KEY, save_breeds_to_csv, save_breeds_to_json
         save_breeds_to_csv(api_key=API_KEY)
         save_breeds_to_json(api_key=API_KEY)
         load_data()
