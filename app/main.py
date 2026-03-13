@@ -367,7 +367,7 @@ def update_breed_group_charts(breed_group):
     else:
         life_df["life_min"] = life_df["life_span_range"].apply(lambda r: r[0])
         life_df["life_max"] = life_df["life_span_range"].apply(lambda r: r[1])
-        life_df = life_df.sort_values("life_min", ascending=False)
+        life_df = life_df.sort_values("life_max", ascending=False)
         groups = life_df["breed_group"].unique()
         color_map = {g: PALETTE[i % len(PALETTE)] for i, g in enumerate(groups)}
         fig_life = go.Figure()
